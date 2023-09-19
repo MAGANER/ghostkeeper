@@ -2,6 +2,7 @@ import json
 import os
 import secrets
 import sys
+from tqdm import tqdm
 
 
 SEP = '__FIL3GH0ST__'.encode()
@@ -16,6 +17,7 @@ class keygen:
         '''
         keys = []
 
+        #generate unique numbers
         numbers = set()
         while len(numbers) < 256:
             n = secrets.randbelow(256)
@@ -72,35 +74,31 @@ class keygen:
         # path doesn't exist OR user wants to replace it
         write_keys()
 
-    def encrypt(self, inp: bytes, disable_input_max_length: bool = False) -> list:
-        print('\n')
+    def __pan(self, inp: bytes) -> bytes:
+        '''if input is too short, then fill it with random bytes'''
+        inp = list(inp)
+        inp.extend(SEPARATOR)
 
+        while len(inp) < 256:
+            inp.append(secrets.randbelow(256))
+
+        return bytes(inp)
+    
+    def encrypt(self, inp: bytes, disable_input_max_length: bool = False) -> list:
         if not disable_input_max_length and len(inp) > 256:
             print("error: input cannot exceed 256 bytes")
             sys.exit()
 
         # Input is too short. Extend it with salt and random bytes.
         if len(inp) < 256:
-            inp = list(inp)
-            inp.extend(SEPARATOR)
+            inp = self.__pan(inp)
 
-            while len(inp) < 256:
-                inp.append(secrets.randbelow(256))
-
-            inp = bytes(inp)
-
-        progress = 0
         enc_bytes = [self._keystore[n] for n in inp]
 
-        # TODO: Consider user tqdm package instead of printing progress manually
-        for i in range(len(enc_bytes)):
+        #show progress bar
+        for i in tqdm(range(len(enc_bytes))):
             enc_bytes[i] = enc_bytes[i] ^ self._keystore[i % 256]
 
-            progress += 1
-            percent = '{:.2%}'.format(progress / len(inp))
-            print(f"Encrypted {progress} bytes of {len(inp)} total. [{percent}%]", end='\r')
-
-        print('\n\nDone.\n')
         return enc_bytes
 
     def encrypt_file(self, path: str, disable_input_max_length=False) -> list:
@@ -108,25 +106,16 @@ class keygen:
             return self.encrypt(f.read(), disable_input_max_length)
 
     def decrypt(self, inp: bytes) -> bytes:
-
         for i in range(len(inp)):
             inp[i] = inp[i] ^ self._keystore[i % 256]
 
-        progress = 0
         decr_bytes = []
-
         indices = list(range(256))
 
-        for b in inp:
+        for b in tqdm(inp):
             assert 0 <= b <= 255
-
             decr_bytes.append(indices[self._keys.index(b)])
 
-            progress += 1
-            percent = '{:.2%}'.format(progress / len(inp))
-            print(f"Decrypted {progress} bytes of {len(inp)} total. [{percent}%]", end='\r')
-
-        print('\n\nDone.\n')
         decr_bytes=bytes(decr_bytes)
 
         sep_iloc = decr_bytes.find(SEP)
