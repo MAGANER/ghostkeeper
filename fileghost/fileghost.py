@@ -9,6 +9,13 @@ SEP = '__FIL3GH0ST__'.encode()
 SEPARATOR = list(bytes(SEP))
 
 
+#This class can be splitted into 3 blocks
+#Here is the list of marks:
+#(just look fri @i and you will get to the right place)
+#@1 Key convertion block
+#@2 Encryption block
+#@3 Decryption block
+
 class keygen:
     @classmethod
     def generate(cls) -> "keygen":
@@ -45,6 +52,7 @@ class keygen:
         self._keys = keys
         self._keystore = dict(enumerate(self._keys))
 
+#@1 Key convertion block ###        
     def to_keystore(self) -> dict:
         return self._keystore.copy()
 
@@ -73,7 +81,9 @@ class keygen:
 
         # path doesn't exist OR user wants to replace it
         write_keys()
-
+###
+        
+#@2 Encryption block ###
     def __pan(self, inp: bytes) -> bytes:
         '''if input is too short, then fill it with random bytes'''
         inp = list(inp)
@@ -104,7 +114,8 @@ class keygen:
     def encrypt_file(self, path: str, disable_input_max_length=False) -> list:
         with open(path, "rb") as f:
             return self.encrypt(f.read(), disable_input_max_length)
-
+###
+#@3 Decryption block ###
     def decrypt(self, inp: bytes) -> bytes:
         for i in range(len(inp)):
             inp[i] = inp[i] ^ self._keystore[i % 256]
@@ -126,3 +137,4 @@ class keygen:
     def decrypt_file(self, path: str) -> bytes:
         with open(path, "rb") as f:
             return self.decrypt(f.read())
+###
