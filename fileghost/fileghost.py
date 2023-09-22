@@ -1,10 +1,15 @@
 import json
 import os
 import secrets
+import random
 import sys
+import hashlib
+from functools import reduce
 from tqdm import tqdm
 
 
+
+#use it to fill empty space
 SEP = '__FIL3GH0ST__'.encode()
 SEPARATOR = list(bytes(SEP))
 
@@ -93,12 +98,16 @@ class keygen:
             inp.append(secrets.randbelow(256))
 
         return bytes(inp)
-    
-    def encrypt(self, inp: bytes, disable_input_max_length: bool = False) -> list:
-        if not disable_input_max_length and len(inp) > 256:
-            print("error: input cannot exceed 256 bytes")
-            sys.exit()
+    def __chunks(self,lst, n):
+        """Yield successive n-sized chunks from lst."""
+        for i in range(0, len(lst), n):
+            yield lst[i:i + n]
 
+
+    def encrypt(self, inp: bytes) -> bytes:
+        encrypted_chunks = [self.__encrypt_chunk(chunk) for chunk in self.__chunks(inp,256)]
+        return bytes(reduce(lambda a,b: a+b, encrypted_chunks))
+    def __encrypt_chunk(self, inp: bytes) -> list:
         # Input is too short. Extend it with salt and random bytes.
         if len(inp) < 256:
             inp = self.__pan(inp)
@@ -116,7 +125,11 @@ class keygen:
             return self.encrypt(f.read(), disable_input_max_length)
 ###
 #@3 Decryption block ###
-    def decrypt(self, inp: bytes) -> bytes:
+    def decrypt(self, inp:bytes) -> bytes:
+        decrypted_chunks = [self.__decrypt_chunk(chunk) for chunk in self.__chunks(inp,256)]
+        return bytes(reduce(lambda a,b: a+b,decrypted_chunks))
+    def __decrypt_chunk(self, inp: bytes) -> bytes:
+        inp = list(inp)
         for i in range(len(inp)):
             inp[i] = inp[i] ^ self._keystore[i % 256]
 
