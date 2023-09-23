@@ -1,17 +1,15 @@
-import json
 import os
 import secrets
 import random
 import sys
-import hashlib
 from functools import reduce
 from tqdm import tqdm
 
 
 
 #use it to fill empty space
-SEP = '__FIL3GH0ST__'.encode()
-SEPARATOR = list(bytes(SEP))
+_SEP = '__FIL3GH0ST__'.encode()
+_SEPARATOR = list(bytes(_SEP))
 
 
 class keygen:
@@ -46,7 +44,7 @@ class keygen:
     def __pan(self, inp: bytes) -> bytes:
         '''if input is too short, then fill it with random bytes'''
         inp = list(inp)
-        inp.extend(SEPARATOR)
+        inp.extend(_SEPARATOR)
 
         while len(inp) < 256:
             inp.append(secrets.randbelow(256))
@@ -99,9 +97,9 @@ class keygen:
 
         decr_bytes=bytes(decr_bytes)
 
-        sep_iloc = decr_bytes.find(SEP)
+        sep_iloc = decr_bytes.find(_SEP)
         if sep_iloc != -1:
-            decr_bytes=decr_bytes[:decr_bytes.find(SEP)]
+            decr_bytes=decr_bytes[:decr_bytes.find(_SEP)]
         return decr_bytes
 
     def decrypt_file(self, path: str) -> bytes:
