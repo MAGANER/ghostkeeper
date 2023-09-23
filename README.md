@@ -39,7 +39,7 @@ $$$$$$'F<$$$$$$$$$$$ ?$$$$$c,"",d$$$$'$$$$$$$$$$$$$$$$$$
 ```
 
 Usage:
-```python
+```
 key = fg.keygen.generate() #create key and object to encrypt data
 encrypted_message = key.encrypt(byte_message)
 decrypted_message = key.decrypt(encrypted_message)
